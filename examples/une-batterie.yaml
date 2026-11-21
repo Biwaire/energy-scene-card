@@ -1,0 +1,8 @@
+type: custom:energy-scene-card
+title: Ma maison
+solar_entity: sensor.production_solaire
+grid_entity: sensor.puissance_reseau
+batteries:
+  - name: Batterie
+    power_entity: sensor.batterie_puissance   # positif = charge (sinon battery_invert: true)
+    soc_entity: sensor.batterie_niveau

@@ -1,0 +1,18 @@
+type: custom:energy-scene-card
+title: Ma maison
+pill_size: medium
+solar_entity: sensor.production_solaire
+grid_entity: sensor.puissance_reseau
+batteries:
+  - name: Batterie 1
+    power_entity: sensor.batterie_1_puissance
+    soc_entity: sensor.batterie_1_niveau
+  - name: Batterie 2
+    power_entity: sensor.batterie_2_puissance
+    soc_entity: sensor.batterie_2_niveau
+extras:
+  - { name: Chauffe-eau, entity: sensor.chauffe_eau_puissance, icon: water-heater, color: "#ff8a4d" }
+  - { name: Borne VE, entity: sensor.borne_ve_puissance, icon: ev }
+chips:
+  - { name: Extérieur, entity: sensor.temperature_exterieure, icon: temperature }
+  - { name: Coucher, entity: sensor.sun_next_setting, icon: sunset }
