@@ -9,15 +9,15 @@ Une carte [Home Assistant](https://www.home-assistant.io/) qui affiche ta produc
   <img src="images/apercu-details.png" width="260" alt="Panneau Détails">
 </p>
 
-> *English summary:* a Lovelace card showing solar production, grid, house and batteries over a scene with animated energy flows, glass pills, one gauge per battery, a details panel, fullscreen mode and a visual editor. Works with any power sensors. Installable through HACS (custom repository).
+> *English summary:* a Lovelace card showing solar production, grid, house and batteries over a scene with animated energy flows (with live power labels), glowing glass tiles, one gauge per battery (reserve mark, end time), a details panel grouped into sections, fullscreen mode and a visual editor. Works with any power sensors. Installable through HACS (custom repository).
 
 ## Fonctionnalités
 
-- Scène réaliste (image de démo incluse, ou la tienne) avec **flux animés** : solaire → maison, réseau (import / injection), batterie (charge / décharge)
-- Pastilles **production / maison / réseau**, plus autant de pastilles que tu veux (chauffe-eau, borne VE, piscine…)
-- **Une tuile avec jauge par batterie** (nom, niveau, puissance)
+- Scène réaliste (image de démo incluse, ou la tienne) avec **flux animés** : solaire → maison, réseau (import / injection), batterie (charge / décharge), avec **la puissance affichée sur chaque flux**
+- **Tuiles lumineuses** production / maison / réseau, chacune de sa couleur, plus autant de pastilles que tu veux (chauffe-eau, borne VE, piscine…)
+- **Une tuile avec jauge en segments par batterie** : niveau, puissance, repère du mini, « pleine vers 17:40 » / « jusqu'à 06:10 », « réserve atteinte »
 - **Puces** pour les petites infos (températures, mode, lever / coucher du soleil…)
-- **Panneau « Détails »** : valeurs, lignes, bouton interrupteur, et même d'autres cartes Lovelace
+- **Panneau « Détails »** rangé **en rubriques** (Batteries, Solaire, Réseau, Coûts, Eau chaude, Suivi) : valeurs, lignes, bouton interrupteur, et même d'autres cartes Lovelace
 - **Plein écran**, avec passage automatique en paysage sur téléphone
 - **Éditeur visuel** avec sélecteurs d'entités
 - Fonctionne avec **n'importe quels capteurs de puissance**, sans dépendance
@@ -58,7 +58,7 @@ Plus d'exemples dans [`examples/`](examples).
 | `solar_entity` | Production solaire (W ou kW) |
 | `grid_entity` | Puissance réseau (positif = import ; `grid_invert: true` pour inverser) |
 | `house_entity` | Consommation de la maison (facultatif, sinon calculée) |
-| `batteries` | Liste `{name, power_entity, soc_entity}` : une tuile par batterie |
+| `batteries` | Liste `{name, power_entity, soc_entity, capacity, min_soc, max_soc}` : une tuile par batterie. `capacity` (kWh) donne l'heure de fin de charge / décharge, `min_soc` (%) affiche le repère de réserve et « réserve atteinte », `max_soc` (%, défaut 100) le niveau de fin de charge |
 | `battery_entity`, `battery_soc_entity` | Version simple pour une seule batterie |
 | `battery_invert` | Inverse le signe de la puissance des batteries |
 | `extras` | Pastilles en plus : `name`, `entity`, `icon`, `color`, `unit` (jusqu'à 6) |
@@ -81,6 +81,7 @@ Plus d'exemples dans [`examples/`](examples).
 | `landscape_fullscreen` | Plein écran automatique en paysage sur téléphone |
 | `points` | Positions des flux sur l'image, en % : `solar`, `house`, `grid`, `battery` (`[x, y]`) |
 | `flow_curve` | Courbure des flux : `0` = lignes droites (défaut), ex. `60` pour les arrondir |
+| `flow_labels` | Puissance affichée sur chaque flux (défaut `true`) |
 | `fit`, `zoom`, `anchor`, `focus`, `mobile_ratio` | Réglages avancés du cadrage de l'image |
 
 Icônes : `temperature`, `water-heater`, `ev`, `plug`, `bolt`, `sunrise`, `sunset`, `calendar`, `battery`, `chart`, `power`, `clock`, `sun`, `home`, ou n'importe quelle icône `mdi:...`.
@@ -90,8 +91,11 @@ Icônes : `temperature`, `water-heater`, `ev`, `plug`, `bolt`, `sunrise`, `sunse
 ```yaml
 details:
   title: Détails
+  group: auto                                # rubriques automatiques (défaut) ; none = une seule liste
   stats:                                     # tuiles de valeurs
     - { name: Production du jour, entity: sensor.production_jour, icon: sun }
+    - { name: Coût du jour, entity: sensor.cout_jour, icon: chart }
+    - { name: Piscine, entity: sensor.piscine_jour, icon: plug, section: Piscine }   # rubrique choisie
   lines:                                     # lignes (dates, durées…)
     - { name: Dernier cycle, entity: input_datetime.dernier_cycle, icon: calendar }
   toggle:                                    # bouton interrupteur + message
@@ -102,6 +106,8 @@ details:
   cards:                                     # d'autres cartes Lovelace
     - type: custom:ma-carte
 ```
+
+Les valeurs sont rangées **en rubriques d'après leur icône** : `battery` → Batteries, `sun` / `sunrise` / `sunset` → Solaire, `bolt` / `plug` → Réseau, `chart` → Coûts, `temperature` / `water-heater` → Eau chaude & températures, `calendar` / `clock` → Suivi. Ajoute `section: "Mon titre"` à une valeur ou une ligne pour choisir sa rubrique (aussi dans l'éditeur visuel), ou `group: none` pour une seule liste. Chaque valeur prend la couleur de son icône, sauf si tu indiques `color`.
 
 Les dates et horodatages sont affichés lisiblement ; les nombres prennent l'unité du capteur.
 
@@ -122,6 +128,13 @@ background: /local/ma-maison.jpg
 - **La carte n'apparaît pas** : vérifie que la ressource est bien chargée (F12 → console) et vide le cache.
 - **Les flux vont dans le mauvais sens** : essaie `grid_invert` et `battery_invert`.
 - **L'éditeur visuel ne reconnaît pas mes listes** : elles se règlent dans l'éditeur ; les réglages avancés restent en YAML.
+
+## Nouveautés
+
+- **0.20** : panneau Détails en rubriques (automatiques ou `section:`), bouton Auto / Manuel en haut du panneau, textes dans la langue de Home Assistant dès le premier affichage.
+- **0.19** : panneau Détails au style lumineux (couleur selon l'icône), bouton Auto / Manuel en verre lumineux, icônes des pastilles gardées sur grand écran.
+- **0.18** : nouvelles tuiles lumineuses (fond sombre, liseré et valeur de la couleur de chaque élément), jauges batteries en segments.
+- **0.17** : puissance affichée sur les flux (`flow_labels`), pastilles sur une rangée, batteries avec `capacity`, `min_soc`, `max_soc` (heure de fin, repère du mini, « réserve atteinte »).
 
 ## Crédits
 
