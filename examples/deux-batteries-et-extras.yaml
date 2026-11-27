@@ -7,6 +7,8 @@ batteries:
   - name: Batterie 1
     power_entity: sensor.batterie_1_puissance
     soc_entity: sensor.batterie_1_niveau
+    capacity: 5        # kWh : heure de fin de charge / décharge
+    min_soc: 20        # % : repère de réserve
   - name: Batterie 2
     power_entity: sensor.batterie_2_puissance
     soc_entity: sensor.batterie_2_niveau
